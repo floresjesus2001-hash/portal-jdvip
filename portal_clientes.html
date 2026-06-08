@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JD Stream VIP — Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b0f;--sf:#0f1318;--sf2:#161c25;--bd:#1e2735;
+  --ac:#00d4ff;--ac2:#0099cc;--pu:#7c3aed;--gn:#16a34a;--gn2:#22c55e;
+  --rd:#dc2626;--rd2:#ef4444;--yw:#d97706;--yw2:#f59e0b;
+  --tx:#f0f4f8;--tx2:#cbd5e1;--mu:#4a5568;--mu2:#64748b;--r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;
+  -webkit-font-smoothing:antialiased}
+
+/* ── LOGIN ── */
+#login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,.04) 0%,transparent 60%)}
+.login-card{background:var(--sf);border:1px solid var(--bd);border-radius:20px;
+  padding:44px 40px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.login-logo{font-weight:800;font-size:28px;text-align:center;margin-bottom:6px;
+  letter-spacing:-0.5px}
+.login-logo span{color:var(--ac)}
+.login-sub{text-align:center;font-size:13px;color:var(--mu2);margin-bottom:32px;font-weight:400}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;color:var(--mu2);font-weight:600;
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.field input{width:100%;padding:12px 15px;background:var(--sf2);border:1.5px solid var(--bd);
+  border-radius:10px;color:var(--tx);font-family:'Inter',sans-serif;font-size:14px;
+  font-weight:400;outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(0,212,255,.1)}
+.field input::placeholder{color:var(--mu)}
+.btn-login{width:100%;padding:13px;background:var(--ac);color:var(--bg);border:none;
+  border-radius:10px;font-family:'Inter',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;margin-top:8px;transition:all .2s;letter-spacing:.2px}
+.btn-login:hover{background:var(--ac2);transform:translateY(-1px)}
+.btn-login:active{transform:translateY(0)}
+.login-err{font-size:12px;color:var(--rd2);text-align:center;margin-top:10px;
+  display:none;font-weight:500}
+.login-load{font-size:12px;color:var(--mu2);text-align:center;margin-top:10px;display:none}
+
+/* URL setup */
+.url-box{background:var(--sf2);border:1.5px dashed var(--bd);border-radius:12px;
+  padding:16px;text-align:center;margin-bottom:22px}
+.url-box p{font-size:12px;color:var(--mu2);margin-bottom:10px;line-height:1.7;font-weight:400}
+.url-box input{width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--ac);
+  border-radius:8px;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:11px;
+  outline:none;margin-bottom:8px}
+.btn-sm{font-family:'Inter',sans-serif;font-weight:700;font-size:12px;padding:8px 18px;
+  border-radius:8px;border:none;cursor:pointer;background:var(--ac);color:var(--bg);
+  transition:opacity .2s}
+.btn-sm:hover{opacity:.85}
+
+/* ── APP ── */
+#app{display:none}
+header{background:var(--sf);border-bottom:1px solid var(--bd);padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;height:58px;
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.hlogo{font-weight:800;font-size:17px;letter-spacing:-.4px}
+.hlogo span{color:var(--ac)}
+.hright{display:flex;align-items:center;gap:14px}
+.huser{font-size:13px;color:var(--mu2);font-weight:400}
+.huser strong{color:var(--tx2);font-weight:600}
+.btn-out{font-size:12px;padding:6px 13px;background:transparent;
+  border:1.5px solid var(--bd);border-radius:8px;color:var(--mu2);cursor:pointer;
+  font-family:'Inter',sans-serif;font-weight:500;transition:all .2s}
+.btn-out:hover{border-color:var(--rd2);color:var(--rd2)}
+
+nav{display:flex;gap:2px;padding:18px 24px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:9px 18px;
+  border-radius:10px 10px 0 0;border:1px solid transparent;border-bottom:none;
+  cursor:pointer;color:var(--mu2);background:transparent;transition:all .18s;white-space:nowrap}
+.tab:hover{color:var(--tx2);background:var(--sf2)}
+.tab.active{color:var(--ac);background:var(--sf);border-color:var(--bd);
+  border-bottom-color:var(--sf)}
+
+main{padding:0 24px 44px;background:var(--sf);border:1px solid var(--bd);
+  border-top:none;border-radius:0 14px 14px 14px;min-height:400px}
+.panel{display:none;padding-top:24px}
+.panel.active{display:block}
+.ptitle{font-weight:700;font-size:20px;margin-bottom:4px;letter-spacing:-.3px;color:var(--tx)}
+.psub{font-size:13px;color:var(--mu2);margin-bottom:22px;font-weight:400;line-height:1.5}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:22px}
+.stat{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;
+  padding:14px 16px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat:hover{border-color:var(--sc,var(--ac))}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--sc,var(--ac))}
+.stat-v{font-weight:800;font-size:26px;color:var(--sc,var(--ac));letter-spacing:-.5px;
+  line-height:1.1}
+.stat-l{font-size:11px;color:var(--mu2);margin-top:4px;font-weight:500}
+
+/* ── CUENTAS ── */
+.svc-group{margin-bottom:24px}
+.svc-head{font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;
+  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd);color:var(--tx2)}
+.svc-cnt{font-size:12px;color:var(--mu2);font-weight:400}
+
+.cuenta{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;
+  padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;
+  justify-content:space-between;gap:10px;flex-wrap:wrap;
+  transition:border-color .2s,background .2s}
+.cuenta:hover{border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.02)}
+.cuenta-left{flex:1;min-width:0}
+.ce{font-size:13px;color:var(--tx2);margin-bottom:4px;word-break:break-all;
+  font-family:'JetBrains Mono',monospace;font-weight:400}
+.cp{font-size:13px;color:var(--yw2);font-family:'JetBrains Mono',monospace;font-weight:500}
+.cuenta-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.dias{font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px;
+  white-space:nowrap;letter-spacing:.2px}
+.d-ok{background:rgba(22,163,74,.12);color:var(--gn2);border:1px solid rgba(22,163,74,.2)}
+.d-warn{background:rgba(217,119,6,.12);color:var(--yw2);border:1px solid rgba(217,119,6,.2)}
+.d-bad{background:rgba(220,38,38,.12);color:var(--rd2);border:1px solid rgba(220,38,38,.2)}
+.d-ven{background:rgba(74,85,104,.1);color:var(--mu2);border:1px solid var(--bd)}
+.fecha-txt{font-size:11px;color:var(--mu);font-weight:400}
+.btn-rv{font-size:11px;padding:5px 12px;background:transparent;
+  border:1.5px solid var(--pu);border-radius:7px;color:var(--pu);cursor:pointer;
+  font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.btn-rv:hover{background:var(--pu);color:white}
+.copy-b{background:transparent;border:1px solid var(--bd);border-radius:5px;
+  padding:2px 8px;font-size:10px;color:var(--mu2);cursor:pointer;margin-left:6px;
+  font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
+.copy-b:hover{border-color:var(--ac);color:var(--ac)}
+.copy-b.ok{border-color:var(--gn2);color:var(--gn2)}
+
+/* ── VENTAS FORM ── */
+.form-card{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);
+  padding:20px;margin-bottom:22px}
+.form-title{font-weight:700;font-size:14px;margin-bottom:16px;color:var(--tx);
+  display:flex;align-items:center;gap:6px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px;margin-bottom:14px}
+.ff label{display:block;font-size:11px;color:var(--mu2);font-weight:600;
+  text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.ff input,.ff select{width:100%;padding:9px 12px;background:var(--bg);
+  border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:400;outline:none;
+  transition:border-color .2s,box-shadow .2s}
+.ff input:focus,.ff select:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(0,212,255,.08)}
+.ff input::placeholder{color:var(--mu)}
+.ff select option{background:var(--sf2)}
+.btn-save{font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 22px;
+  background:var(--ac);color:var(--bg);border:none;border-radius:9px;cursor:pointer;
+  transition:all .2s;letter-spacing:.2px}
+.btn-save:hover{background:var(--ac2);transform:translateY(-1px)}
+.ok-msg{font-size:12px;color:var(--gn2);margin-left:12px;display:none;font-weight:600}
+
+/* ── TABLA ── */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead th{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.7px;color:var(--mu2);
+  padding:11px 13px;text-align:left;border-bottom:1px solid var(--bd);
+  background:var(--sf2);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(30,39,53,.8);transition:background .12s}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+tbody td{padding:10px 13px;font-size:13px;font-weight:400}
+.td-s{font-weight:700;color:var(--ac);font-size:13px}
+.td-u{color:var(--yw2);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px}
+.td-b{color:var(--gn2);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* ── PRECIOS ── */
+.tasa-row{display:flex;align-items:center;gap:14px;background:var(--sf2);
+  border:1px solid var(--bd);border-radius:12px;padding:14px 18px;
+  margin-bottom:20px;flex-wrap:wrap}
+.tasa-row label{font-size:13px;color:var(--mu2);font-weight:500}
+.tasa-inp{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;
+  width:120px;padding:6px 12px;background:var(--bg);border:1.5px solid var(--ac);
+  border-radius:9px;color:var(--ac);outline:none;text-align:center;
+  transition:box-shadow .2s}
+.tasa-inp:focus{box-shadow:0 0 0 3px rgba(0,212,255,.1)}
+
+/* ── RESUMEN ── */
+.svc-row{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;
+  padding:12px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px;
+  transition:border-color .2s}
+.svc-row:hover{border-color:var(--ac)}
+.svc-nm{font-weight:700;font-size:13px;min-width:140px;color:var(--tx2)}
+.svc-bar-wrap{flex:1;background:var(--bd);border-radius:4px;height:4px;overflow:hidden}
+.svc-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.svc-ct{font-size:12px;color:var(--mu2);white-space:nowrap;font-weight:500}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
+  display:none;align-items:flex-start;justify-content:center;
+  padding:40px 16px;overflow-y:auto;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);
+  width:100%;max-width:440px;padding:26px;position:relative;
+  box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal-x{position:absolute;top:14px;right:14px;background:transparent;border:none;
+  color:var(--mu2);font-size:18px;cursor:pointer;line-height:1;
+  width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  transition:all .15s}
+.modal-x:hover{background:var(--sf2);color:var(--tx)}
+.modal h3{font-weight:700;font-size:17px;margin-bottom:18px;letter-spacing:-.3px}
+.drow{display:flex;justify-content:space-between;padding:9px 0;
+  border-bottom:1px solid rgba(30,39,53,.8);font-size:13px}
+.drow:last-child{border:none}
+.dlbl{color:var(--mu2);font-weight:500}
+.dval{color:var(--tx2);font-weight:600;text-align:right;word-break:break-all;max-width:60%}
+.modal .ff{margin-bottom:12px}
+.modal textarea{width:100%;padding:9px 13px;background:var(--bg);
+  border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);
+  font-family:'Inter',sans-serif;font-size:13px;outline:none;resize:vertical;
+  min-height:75px;transition:border-color .2s,box-shadow .2s}
+.modal textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(0,212,255,.08)}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.btn-cancel{font-family:'Inter',sans-serif;font-weight:600;font-size:13px;padding:10px 18px;
+  background:transparent;border:1.5px solid var(--bd);border-radius:9px;
+  color:var(--mu2);cursor:pointer;transition:all .2s}
+.btn-cancel:hover{border-color:var(--tx2);color:var(--tx2)}
+.btn-send{font-family:'Inter',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;
+  background:var(--pu);color:white;border:none;border-radius:9px;cursor:pointer;
+  transition:all .2s;letter-spacing:.2px}
+.btn-send:hover{opacity:.85;transform:translateY(-1px)}
+.send-ok{font-size:12px;color:var(--gn2);margin-top:10px;display:none;font-weight:600}
+
+.empty{text-align:center;padding:60px 20px;color:var(--mu2);font-size:14px;font-weight:400}
+
+@media(max-width:580px){
+  header,nav,main{padding-left:16px;padding-right:16px}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .login-card{padding:32px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">JD<span>Stream</span>VIP</div>
+    <div class="login-sub">Portal de Clientes Mayoristas</div>
+
+    <div class="url-box" id="url-box">
+      <p>Configura la URL de tu Apps Script para conectar:</p>
+      <input id="url-inp" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+      <button class="btn-sm" onclick="saveUrl()">Guardar y continuar</button>
+    </div>
+
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" id="u" placeholder="tu usuario" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="p" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Entrar al portal</button>
+    <button style="width:100%;padding:11px;background:transparent;border:1px solid var(--bd);
+      border-radius:8px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;
+      color:var(--mu);cursor:pointer;margin-top:8px;transition:all .2s"
+      onmouseover="this.style.borderColor='var(--ac)';this.style.color='var(--ac)'"
+      onmouseout="this.style.borderColor='var(--bd)';this.style.color='var(--mu)'"
+      onclick="useDemo()">Ver demo sin conectar</button>
+    <div class="login-err" id="lerr"></div>
+    <div class="login-load" id="lload">Verificando...</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="hlogo">JD<span>Stream</span>VIP</div>
+    <div class="hright">
+      <div class="huser">Hola, <strong id="hnombre">—</strong></div>
+      <button class="btn-out" onclick="logout()">Salir</button>
+    </div>
+  </header>
+  <div style="padding:0 22px">
+    <nav>
+      <button class="tab active" onclick="goTab('cuentas',this)">📺 Mis Cuentas</button>
+      <button class="tab" onclick="goTab('ventas',this)">💰 Mis Ventas</button>
+      <button class="tab" onclick="goTab('resumen',this)">📊 Resumen</button>
+      <button class="tab" onclick="goTab('precios',this)">💵 Precios</button>
+    </nav>
+    <main>
+
+      <!-- CUENTAS -->
+      <div id="panel-cuentas" class="panel active">
+        <div class="ptitle">Mis Cuentas</div>
+        <div class="psub">Cuentas asignadas · Usa copiar para compartir con tus clientes</div>
+        <div class="stats" id="st-cuentas"></div>
+        <div id="cuentas-body"></div>
+      </div>
+
+      <!-- VENTAS -->
+      <div id="panel-ventas" class="panel">
+        <div class="ptitle">Registro de Ventas</div>
+        <div class="psub">Anota cada venta que realizas a tus propios clientes</div>
+        <div class="form-card">
+          <div class="form-title">➕ Nueva venta</div>
+          <div class="fgrid">
+            <div class="ff"><label>Servicio</label>
+              <select id="vs"><option value="">Seleccionar...</option></select>
+            </div>
+            <div class="ff"><label>Nombre del cliente</label>
+              <input id="vc" type="text" placeholder="A quien le vendiste">
+            </div>
+            <div class="ff"><label>Correo / cuenta</label>
+              <input id="vcor" type="text" placeholder="Opcional">
+            </div>
+            <div class="ff"><label>Precio ($)</label>
+              <input id="vp" type="number" step="0.5" min="0" placeholder="0.00" oninput="calcBs()">
+            </div>
+            <div class="ff"><label>Equivalente Bs.</label>
+              <input id="vbs" type="text" placeholder="—" readonly style="opacity:.6">
+            </div>
+            <div class="ff"><label>Método de pago</label>
+              <select id="vm">
+                <option>Pago Móvil</option><option>Transferencia</option>
+                <option>Zelle</option><option>Binance</option><option>Efectivo</option>
+              </select>
+            </div>
+          </div>
+          <div class="ff" style="margin-bottom:12px">
+            <label>Notas (opcional)</label>
+            <input id="vn" type="text" placeholder="Ej: renovación, perfil 2...">
+          </div>
+          <button class="btn-save" onclick="guardar()">Guardar venta</button>
+          <span class="ok-msg" id="ok-msg">✓ Guardado</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Servicio</th><th>Cliente</th><th>Precio $</th><th>Precio Bs</th><th>Método</th><th>Notas</th></tr></thead>
+            <tbody id="ventas-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESUMEN -->
+      <div id="panel-resumen" class="panel">
+        <div class="ptitle">Mi Resumen</div>
+        <div class="psub">Vista general de tu actividad</div>
+        <div class="stats" id="st-resumen"></div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin:18px 0 10px">Ventas por servicio</div>
+        <div id="res-svcs"></div>
+      </div>
+
+      <!-- PRECIOS -->
+      <div id="panel-precios" class="panel">
+        <div class="ptitle">Lista de Precios</div>
+        <div class="psub">Precios mayoristas con conversión a Bs.</div>
+        <div class="tasa-row">
+          <label>Tasa (Bs/$):</label>
+          <input class="tasa-inp" type="number" id="tasa" value="760" min="1" oninput="renderPrecios()">
+          <span style="font-size:11px;color:var(--mu)">Leída desde tu Sheet</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Servicio</th><th>Tipo</th><th>Duración</th><th>Precio $</th><th>Precio Bs</th></tr></thead>
+            <tbody id="precios-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL RENOVACIÓN -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>Solicitar renovación</h3>
+    <div class="drow"><span class="dlbl">Servicio</span><span class="dval" id="mr-svc">—</span></div>
+    <div class="drow"><span class="dlbl">Cuenta</span><span class="dval" id="mr-cor">—</span></div>
+    <div class="drow"><span class="dlbl">Vencimiento</span><span class="dval" id="mr-fecha">—</span></div>
+    <div class="ff" style="margin-top:14px">
+      <label>Mensaje (opcional)</label>
+      <textarea id="mr-msg" placeholder="Ej: necesito renovar urgente, el cliente ya pagó..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-send" onclick="enviarRenovacion()">Enviar solicitud</button>
+    </div>
+    <div class="send-ok" id="send-ok">✓ Solicitud enviada — te llegará un email</div>
+  </div>
+</div>
+
+<script>
+const ICONS={'HBO MAX':'🎬','DISNEY+':'🏰','AMAZON PRIME':'📦','CANVA PRO':'🎨',
+  'CRUNCHYROLL':'🍜','PARAMOUNT+':'⭐','VIX':'📺','NETFLIX':'🎥','APPLE TV+':'🍎',
+  'DEEZER':'🎵','SPOTIFY':'🎶','FLUJO TV':'📡'};
+
+let S=null, DATA=null, RENOV={};
+let API=localStorage.getItem('jdvip2_url')||'';
+
+window.onload=()=>{
+  if(API){ document.getElementById('url-inp').value=API; document.getElementById('url-box').style.display='none'; }
+  const saved=localStorage.getItem('jdvip2_session');
+  if(saved){ S=JSON.parse(saved); loadData(); }
+};
+
+function saveUrl(){
+  const u=document.getElementById('url-inp').value.trim();
+  if(!u)return;
+  API=u; localStorage.setItem('jdvip2_url',u);
+  document.getElementById('url-box').style.display='none';
+}
+
+// ── LOGIN ──
+async function doLogin(){
+  if(!API){alert('Primero configura la URL del Apps Script');return;}
+  const user=document.getElementById('u').value.trim();
+  const pass=document.getElementById('p').value.trim();
+  if(!user||!pass){showErr('Ingresa usuario y contraseña');return;}
+  document.getElementById('lerr').style.display='none';
+  document.getElementById('lload').style.display='block';
+  try{
+    const r=await fetch(`${API}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+    const d=await r.json();
+    document.getElementById('lload').style.display='none';
+    if(d.ok){
+      S={token:d.token,nombre:d.nombre,rol:d.rol,id:d.id};
+      localStorage.setItem('jdvip2_session',JSON.stringify(S));
+      loadData();
+    } else showErr(d.error||'Error al iniciar sesión');
+  }catch(e){
+    document.getElementById('lload').style.display='none';
+    showErr('No se pudo conectar. Verifica la URL.');
+  }
+}
+
+function showErr(m){
+  const el=document.getElementById('lerr');
+  el.textContent='❌ '+m; el.style.display='block';
+}
+
+// ── LOAD DATA ──
+async function loadData(){
+  if(!S)return;
+  try{
+    const r=await fetch(`${API}?action=client&token=${S.token}`);
+    const d=await r.json();
+    if(!d.ok){ if(d.error&&d.error.includes('expirada'))logout(); return; }
+    DATA=d;
+    document.getElementById('hnombre').textContent=S.nombre;
+    document.getElementById('login-wrap').style.display='none';
+    document.getElementById('app').style.display='block';
+    // Llenar select de servicios con los que tiene asignados
+    const svcs=[...new Set((d.cuentas||[]).map(c=>c.servicio))];
+    const sel=document.getElementById('vs');
+    sel.innerHTML='<option value="">Seleccionar...</option>';
+    svcs.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+    // Tasa
+    document.getElementById('tasa').value=d.tasa||760;
+    renderAll();
+  }catch(e){console.error(e);}
+}
+
+function renderAll(){
+  if(!DATA)return;
+  renderCuentas();
+  renderVentas(DATA.ventas||[]);
+  renderResumen(DATA.ventas||[]);
+  renderPrecios();
+}
+
+// ── CUENTAS ──
+function renderCuentas(){
+  const cuentas=DATA.cuentas||[];
+  let vig=0,prox=0,ven=0;
+  const bySvc={};
+  cuentas.forEach(c=>{
+    if(!bySvc[c.servicio])bySvc[c.servicio]=[];
+    bySvc[c.servicio].push(c);
+    if(c.estado==='VIGENTE'){
+      vig++;
+      if(c.diasRestantes!==null&&c.diasRestantes<=7)prox++;
+    } else ven++;
+  });
+  document.getElementById('st-cuentas').innerHTML=`
+    <div class="stat" style="--sc:var(--gn)"><div class="stat-v">${vig}</div><div class="stat-l">Vigentes</div></div>
+    <div class="stat" style="--sc:var(--yw)"><div class="stat-v">${prox}</div><div class="stat-l">Vencen en 7d</div></div>
+    <div class="stat" style="--sc:var(--rd)"><div class="stat-v">${ven}</div><div class="stat-l">Vencidas</div></div>
+    <div class="stat" style="--sc:var(--ac)"><div class="stat-v">${cuentas.length}</div><div class="stat-l">Total</div></div>`;
+
+  const body=document.getElementById('cuentas-body');
+  body.innerHTML='';
+  if(!cuentas.length){ body.innerHTML='<div class="empty">No tienes cuentas asignadas aún</div>'; return; }
+
+  Object.entries(bySvc).forEach(([svc,list])=>{
+    const vc=list.filter(c=>c.estado==='VIGENTE').length;
+    const grp=document.createElement('div'); grp.className='svc-group';
+    grp.innerHTML=`<div class="svc-head">${ICONS[svc]||'📺'} ${svc} <span class="svc-cnt">${vc}/${list.length} vigentes</span></div>`;
+    list.forEach(c=>{
+      const d=c.diasRestantes;
+      let bc='d-ven',bt='VENCIDA';
+      if(c.estado==='VIGENTE'&&d!==null){
+        if(d>7){bc='d-ok';bt=`${d}d restantes`;}
+        else if(d>0){bc='d-warn';bt=`⚠ ${d}d`;}
+        else{bc='d-bad';bt='Vence hoy';}
+      } else if(c.estado==='VIGENTE'){bc='d-ok';bt='Vigente';}
+      const mostrarRenovar=(c.estado==='VENCIDA')||(c.estado==='VIGENTE'&&d!==null&&d<=7);
+      const e=s=>String(s).replace(/'/g,"&#39;");
+      const card=document.createElement('div'); card.className='cuenta';
+      card.innerHTML=`
+        <div class="cuenta-left">
+          <div class="ce">${c.correo} <button class="copy-b" onclick="cp('${e(c.correo)}',this)">copiar</button></div>
+          <div class="cp">${c.pass} <button class="copy-b" onclick="cp('${e(c.pass)}',this)">copiar</button></div>
+          ${c.notas?`<div style="font-size:10px;color:var(--mu);margin-top:3px">${c.notas}</div>`:''}
+        </div>
+        <div class="cuenta-right">
+          <span class="dias ${bc}">${bt}</span>
+          ${c.fechaVenc?`<span class="fecha-txt">Vence: ${c.fechaVenc}</span>`:''}
+          ${mostrarRenovar?`<button class="btn-rv" onclick="openModal('${e(c.servicio)}','${e(c.correo)}','${c.fechaVenc||''}')">Renovar</button>`:''}
+        </div>`;
+      grp.appendChild(card);
+    });
+    body.appendChild(grp);
+  });
+}
+
+// ── VENTAS ──
+function calcBs(){
+  const usd=parseFloat(document.getElementById('vp').value)||0;
+  const tasa=parseFloat(document.getElementById('tasa').value)||760;
+  document.getElementById('vbs').value=usd>0?'Bs.'+Math.round(usd*tasa).toLocaleString('es-VE'):'—';
+}
+
+async function guardar(){
+  const svc=document.getElementById('vs').value;
+  const cli=document.getElementById('vc').value.trim();
+  const usd=parseFloat(document.getElementById('vp').value)||0;
+  if(!svc||!cli||usd<=0){alert('Completa servicio, cliente y precio');return;}
+  try{
+    const r=await fetch(API,{method:'POST',body:JSON.stringify({
+      action:'registrar_venta',token:S.token,
+      servicio:svc,clienteNombre:cli,
+      correo:document.getElementById('vcor').value.trim(),
+      precioUsd:usd,metodo:document.getElementById('vm').value,
+      notas:document.getElementById('vn').value.trim()
+    })});
+    const d=await r.json();
+    if(d.ok){
+      ['vs','vc','vcor','vp','vbs','vn'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el.tagName==='SELECT')el.value=''; else el.value='';
+      });
+      const ok=document.getElementById('ok-msg');
+      ok.style.display='inline'; setTimeout(()=>ok.style.display='none',2000);
+      const r2=await fetch(`${API}?action=ventas&token=${S.token}`);
+      const d2=await r2.json();
+      if(d2.ok){ DATA.ventas=d2.ventas; renderVentas(d2.ventas); renderResumen(d2.ventas); }
+    }
+  }catch(e){alert('Error al guardar');}
+}
+
+function renderVentas(ventas){
+  const tbody=document.getElementById('ventas-body');
+  const tasa=parseFloat(document.getElementById('tasa').value)||760;
+  if(!ventas||!ventas.length){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--mu)">Aún no tienes ventas registradas</td></tr>';
+    return;
+  }
+  tbody.innerHTML=ventas.map(v=>`
+    <tr>
+      <td style="color:var(--mu)">${v.fecha}</td>
+      <td class="td-s">${ICONS[v.servicio]||''} ${v.servicio}</td>
+      <td>${v.cliente}</td>
+      <td class="td-u">$${v.precioUsd.toFixed(2)}</td>
+      <td class="td-b">Bs.${Math.round(v.precioBS).toLocaleString('es-VE')}</td>
+      <td style="color:var(--mu)">${v.metodo||'—'}</td>
+      <td style="color:var(--mu);font-size:11px">${v.notas||'—'}</td>
+    </tr>`).join('');
+}
+
+// ── RESUMEN ──
+function renderResumen(ventas){
+  const tasa=parseFloat(document.getElementById('tasa').value)||760;
+  const vig=(DATA.cuentas||[]).filter(c=>c.estado==='VIGENTE').length;
+  const totalUsd=ventas.reduce((a,v)=>a+(v.precioUsd||0),0);
+  const totalBS=ventas.reduce((a,v)=>a+(v.precioBS||0),0);
+  document.getElementById('st-resumen').innerHTML=`
+    <div class="stat" style="--sc:var(--gn)"><div class="stat-v">${vig}</div><div class="stat-l">Cuentas vigentes</div></div>
+    <div class="stat" style="--sc:var(--ac)"><div class="stat-v">${ventas.length}</div><div class="stat-l">Ventas registradas</div></div>
+    <div class="stat" style="--sc:var(--yw)"><div class="stat-v">$${totalUsd.toFixed(2)}</div><div class="stat-l">Total vendido $</div></div>
+    <div class="stat" style="--sc:var(--pu)"><div class="stat-v" style="font-size:16px">Bs.${Math.round(totalBS).toLocaleString('es-VE')}</div><div class="stat-l">Total vendido Bs</div></div>`;
+  const bySvc={};
+  ventas.forEach(v=>{
+    if(!bySvc[v.servicio])bySvc[v.servicio]={n:0,usd:0};
+    bySvc[v.servicio].n++; bySvc[v.servicio].usd+=v.precioUsd||0;
+  });
+  const max=Math.max(...Object.values(bySvc).map(s=>s.n),1);
+  document.getElementById('res-svcs').innerHTML=Object.entries(bySvc)
+    .sort((a,b)=>b[1].n-a[1].n)
+    .map(([svc,d])=>`
+    <div class="svc-row">
+      <div class="svc-nm">${ICONS[svc]||''} ${svc}</div>
+      <div class="svc-bar-wrap"><div class="svc-bar-fill" style="width:${Math.round(d.n/max*100)}%"></div></div>
+      <div class="svc-ct">${d.n} ventas · $${d.usd.toFixed(2)}</div>
+    </div>`).join('')||'<div class="empty">Sin ventas registradas aún</div>';
+}
+
+// ── PRECIOS ──
+function renderPrecios(){
+  const tasa=parseFloat(document.getElementById('tasa').value)||760;
+  const precios=DATA?DATA.precios||[]:[];
+  document.getElementById('precios-body').innerHTML=precios.map(p=>`
+    <tr>
+      <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--ac)">${p.name}</td>
+      <td style="color:var(--mu)">${p.tipo}</td>
+      <td style="color:var(--mu)">${p.duracion}</td>
+      <td class="td-u">$${p.usd.toFixed(2)}</td>
+      <td class="td-b">Bs.${Math.round(p.usd*tasa).toLocaleString('es-VE')}</td>
+    </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--mu)">Sin precios cargados</td></tr>';
+}
+
+// ── MODAL ──
+function openModal(svc,correo,fecha){
+  RENOV={svc,correo,fecha};
+  document.getElementById('mr-svc').textContent=svc;
+  document.getElementById('mr-cor').textContent=correo;
+  document.getElementById('mr-fecha').textContent=fecha||'—';
+  document.getElementById('mr-msg').value='';
+  document.getElementById('send-ok').style.display='none';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+async function enviarRenovacion(){
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify({
+      action:'solicitar_renovacion',token:S.token,
+      servicio:RENOV.svc,correo:RENOV.correo,
+      fechaVenc:RENOV.fecha,mensaje:document.getElementById('mr-msg').value
+    })});
+    document.getElementById('send-ok').style.display='block';
+    setTimeout(closeModal,1800);
+  }catch(e){alert('Error al enviar');}
+}
+
+// ── DEMO ──
+function useDemo(){
+  const hoy = new Date();
+  const add = (d,n)=>{ const r=new Date(d); r.setDate(r.getDate()+n); return r.toISOString().split('T')[0]; };
+  S={ token:'demo', nombre:'Hector Suarez', rol:'cliente', id:'3' };
+  DATA={
+    tasa: 760,
+    cliente:{ id:'3', nombre:'Hector Suarez', telefono:'0412-0000002', rol:'cliente' },
+    cuentas:[
+      {codigo:'HBO001',correo:'jdstreamingcom+ch75@gmail.com',pass:'20caramelo58',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,15),diasRestantes:15,notas:''},
+      {codigo:'HBO002',correo:'jdstreamingcom+ch34@gmail.com',pass:'76user76',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,5),diasRestantes:5,notas:''},
+      {codigo:'HBO003',correo:'jdstreamingcom+fl427@gmail.com',pass:'38user45',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,3),diasRestantes:3,notas:''},
+      {codigo:'HBO004',correo:'jdstreamingcom+hus1@gmail.com',pass:'violet2123',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VENCIDA',fechaVenc:add(hoy,-5),diasRestantes:-5,notas:'Renovar'},
+      {codigo:'DIS001',correo:'jdstreamingcom+ppdn32@gmail.com',pass:'67felice34',servicio:'DISNEY+',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,19),diasRestantes:19,notas:''},
+      {codigo:'DIS002',correo:'jdstreamingcom+flo871@gmail.com',pass:'87user43',servicio:'DISNEY+',tipo:'Perfil',plan:'Premium',estado:'VENCIDA',fechaVenc:add(hoy,-3),diasRestantes:-3,notas:''},
+      {codigo:'DEEZER001',correo:'jdsvip1@jdshd.lat',pass:'hola1212',servicio:'DEEZER',tipo:'Cuenta',plan:'Individual',estado:'VIGENTE',fechaVenc:add(hoy,30),diasRestantes:30,notas:''},
+    ],
+    ventas:[
+      {id:'V001',fecha:add(hoy,-5),servicio:'HBO MAX',cliente:'Carlos Perez',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Pago Móvil',notas:''},
+      {id:'V002',fecha:add(hoy,-3),servicio:'DISNEY+',cliente:'Laura Gomez',correo:'—',precioUsd:4.0,precioBS:3040,metodo:'Transferencia',notas:''},
+      {id:'V003',fecha:add(hoy,-1),servicio:'HBO MAX',cliente:'Roberto Silva',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Binance',notas:'Renovación'},
+    ],
+    precios:[
+      {name:'HBO / Max',tipo:'Perfil',duracion:'1 mes',usd:3.0},
+      {name:'Disney PRM',tipo:'Perfil',duracion:'1 mes',usd:11.8},
+      {name:'Canva Pro',tipo:'Cuenta',duracion:'1 mes',usd:1.0},
+      {name:'Amazon Prime',tipo:'Perfil',duracion:'1 mes',usd:5.7},
+      {name:'Paramount+',tipo:'Perfil',duracion:'1 mes',usd:2.5},
+      {name:'Vix',tipo:'Cuenta',duracion:'1 mes',usd:2.5},
+      {name:'Deezer',tipo:'Cuenta',duracion:'1 mes',usd:2.5},
+      {name:'Spotify PIN',tipo:'PIN',duracion:'1 mes',usd:5.0},
+      {name:'Apple TV+',tipo:'Cuenta',duracion:'1 mes',usd:3.5},
+      {name:'Netflix 40k',tipo:'Cuenta',duracion:'28-29 días',usd:6.0},
+    ]
+  };
+  document.getElementById('hnombre').textContent = S.nombre;
+  document.getElementById('tasa').value = DATA.tasa;
+  // Llenar select servicios
+  const svcs=[...new Set(DATA.cuentas.map(c=>c.servicio))];
+  const sel=document.getElementById('vs');
+  sel.innerHTML='<option value="">Seleccionar...</option>';
+  svcs.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  renderAll();
+}
+
+
+function cp(txt,btn){
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.textContent='✓'; btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='copiar';btn.classList.remove('ok');},1500);
+  });
+}
+function goTab(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+}
+function logout(){
+  S=null; localStorage.removeItem('jdvip2_session');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-wrap').style.display='flex';
+}
+</script>
+</body>
+</html>
