@@ -324,6 +324,7 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
       <div id="panel-cuentas" class="panel active">
         <div class="ptitle">Mis Cuentas</div>
         <div class="psub">Cuentas asignadas · Usa copiar para compartir con tus clientes</div>
+        <div id="susc-banner"></div>
         <div class="stats" id="st-cuentas"></div>
         <div id="cuentas-body"></div>
       </div>
@@ -459,7 +460,7 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
         </div>
         <div class="atbl-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Usuario</th><th>Plan</th><th>Vence suscripción</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="a-clientes-body"></tbody>
           </table>
         </div>
@@ -538,6 +539,16 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
       <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Teléfono</label><input id="mc-tel" type="text" placeholder="04XX-XXXXXXX" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
       <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Usuario</label><input id="mc-user" type="text" placeholder="usuario" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
       <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Contraseña</label><input id="mc-pass" type="text" placeholder="contraseña" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
+      <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Plan</label>
+        <select id="mc-plan" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none">
+          <option value="">Sin plan</option>
+          <option value="mensual">Mensual (30 días)</option>
+          <option value="trimestral">Trimestral (90 días)</option>
+          <option value="semestral">Semestral (180 días)</option>
+          <option value="anual">Anual (365 días)</option>
+        </select>
+      </div>
+      <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Fecha de compra</label><input id="mc-fecha" type="date" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('modal-cliente').classList.remove('open')">Cancelar</button>
@@ -575,10 +586,10 @@ const ICONS={'HBO MAX':'🎬','DISNEY+':'🏰','AMAZON PRIME':'📦','CANVA PRO'
 let S=null, DATA=null, RENOV={};
 
 // ── PON AQUÍ TU URL DEL APPS SCRIPT ──
-const API_FIXED = 'https://script.google.com/macros/s/AKfycbz2d1y-DRRG3aIRgB63Fut2gY9e--UuUGRgCaRupHBh8Tpqr9FdkWK--6G2Gh3T2Vh7gw/exec';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
+const API_FIXED = '';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 
 // ── VERSIÓN ACTUAL DEL APP ──
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.8';
 
 let API = API_FIXED || localStorage.getItem('jdvip2_url') || '';
 
@@ -677,6 +688,31 @@ function renderAll(){
 // ── CUENTAS ──
 function renderCuentas(){
   const cuentas=DATA.cuentas||[];
+  const cliente=DATA.cliente||{};
+
+  // Banner de suscripción
+  const banner = document.getElementById('susc-banner');
+  if(cliente.fechaVenceSusc){
+    const ds = cliente.diasSusc;
+    const bc = ds<0?'rgba(239,68,68,.12)':ds<=7?'rgba(245,158,11,.12)':'rgba(34,197,94,.08)';
+    const bc2= ds<0?'rgba(239,68,68,.3)':ds<=7?'rgba(245,158,11,.3)':'rgba(34,197,94,.25)';
+    const tc = ds<0?'var(--rd2)':ds<=7?'var(--yw2)':'var(--gn2)';
+    const txt= ds<0?'Tu suscripción ha vencido':ds===0?'Tu suscripción vence hoy':ds<=7?`Tu suscripción vence en ${ds} días`:`Suscripción activa`;
+    banner.innerHTML=`
+      <div style="background:${bc};border:1px solid ${bc2};border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-weight:700;font-size:13px;color:${tc}">${txt}</div>
+          <div style="font-size:11px;color:var(--mu2);margin-top:2px">
+            Plan: <strong style="color:var(--tx2)">${cliente.plan||'—'}</strong>
+            ${cliente.fechaCompraSusc?` · Compra: ${cliente.fechaCompraSusc}`:''}
+            · Vence: ${cliente.fechaVenceSusc}
+          </div>
+        </div>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:${tc}">${ds<0?'VENCIDA':ds+'d'}</span>
+      </div>`;
+  } else {
+    banner.innerHTML='';
+  }
   let vig=0,prox=0,ven=0;
   const bySvc={};
   cuentas.forEach(c=>{
@@ -1046,20 +1082,37 @@ function renderAdminDashboard(){
     <div class="adash-card" style="--sc:var(--yw2)"><div class="adash-v">$${ingUsd.toFixed(0)}</div><div class="adash-l">Ingresos totales</div></div>
     <div class="adash-card" style="--sc:var(--pu)"><div class="adash-v">${ventas.length}</div><div class="adash-l">Ventas registradas</div></div>`;
 
-  // Alertas
+  // Alertas de vencimiento de cuentas
   const alertas = cuentas.filter(c=>c.estado==='VIGENTE'&&c.diasRestantes!==null&&c.diasRestantes<=7)
     .sort((a,b)=>a.diasRestantes-b.diasRestantes);
+
+  // Alertas de suscripción
+  const alertasSusc = clientes.filter(c=>c.fechaVenceSusc&&c.diasSusc!==null&&c.diasSusc<=7&&c.activo==='SI')
+    .sort((a,b)=>a.diasSusc-b.diasSusc);
+
   const alertDiv = document.getElementById('a-alerts');
-  if(!alertas.length){ alertDiv.innerHTML='<div class="empty" style="padding:20px">Sin vencimientos próximos 🎉</div>'; }
-  else {
-    alertDiv.innerHTML = alertas.map(c=>`
-      <div class="alert-item">
-        <div>
-          <div class="alert-svc">${ICONS[c.servicio]||''} ${c.servicio}</div>
-          <div class="alert-cliente">${c.cliente} · ${c.correo}</div>
-        </div>
-        <span class="dias ${c.diasRestantes<=3?'d-bad':'d-warn'}">${c.diasRestantes===0?'Hoy':c.diasRestantes+'d'}</span>
-      </div>`).join('');
+  const alertasHTML = alertas.map(c=>`
+    <div class="alert-item">
+      <div>
+        <div class="alert-svc">${ICONS[c.servicio]||''} ${c.servicio} · <span style="color:var(--mu2);font-weight:400">cuenta</span></div>
+        <div class="alert-cliente">${c.cliente} · ${c.correo}</div>
+      </div>
+      <span class="dias ${c.diasRestantes<=3?'d-bad':'d-warn'}">${c.diasRestantes===0?'Hoy':c.diasRestantes+'d'}</span>
+    </div>`).join('');
+
+  const alertasSuscHTML = alertasSusc.map(c=>`
+    <div class="alert-item" style="border-color:rgba(124,58,237,.4)">
+      <div>
+        <div class="alert-svc" style="color:var(--pu)">🔔 Suscripción · ${c.plan||'—'}</div>
+        <div class="alert-cliente">${c.nombre} · vence ${c.fechaVenceSusc}</div>
+      </div>
+      <span class="dias ${c.diasSusc<=3?'d-bad':'d-warn'}">${c.diasSusc===0?'Hoy':c.diasSusc+'d'}</span>
+    </div>`).join('');
+
+  if(!alertas.length && !alertasSusc.length){
+    alertDiv.innerHTML='<div class="empty" style="padding:20px">Sin alertas próximas 🎉</div>';
+  } else {
+    alertDiv.innerHTML = alertasSuscHTML + alertasHTML;
   }
 
   // Resumen por cliente
@@ -1088,19 +1141,30 @@ function renderAdminDashboard(){
 
 function renderAdminClientes(){
   if(!ADMIN_DATA) return;
-  document.getElementById('a-clientes-body').innerHTML = ADMIN_DATA.clientes.map(c=>`
-    <tr>
+  document.getElementById('a-clientes-body').innerHTML = ADMIN_DATA.clientes.map(c=>{
+    const ds = c.diasSusc;
+    let suscBadge = '—';
+    if(c.fechaVenceSusc){
+      const color = ds<0?'var(--rd2)':ds<=7?'var(--yw2)':'var(--gn2)';
+      const txt   = ds<0?'Vencida':ds===0?'Hoy':ds+'d';
+      suscBadge = `<span style="color:${color};font-weight:600;font-size:12px">${txt}</span>
+        <span style="color:var(--mu2);font-size:11px;display:block">${c.fechaVenceSusc}</span>`;
+    }
+    const planBadge = c.plan ? `<span class="pill p-rev" style="font-size:10px">${c.plan}</span>` : '—';
+    return `<tr>
       <td style="color:var(--mu2);font-size:11px">${c.id}</td>
       <td style="font-weight:600;color:var(--tx2)">${c.nombre}</td>
       <td style="color:var(--mu2)">${c.telefono||'—'}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ac)">${c.usuario}</td>
-      <td><span class="pill ${c.rol==='admin'?'p-prox':'p-rev'}">${c.rol}</span></td>
+      <td>${planBadge}</td>
+      <td>${suscBadge}</td>
       <td><span class="pill ${c.activo==='SI'?'p-vig':'d-ven'}">${c.activo==='SI'?'Activo':'Inactivo'}</span></td>
       <td>
         <button class="btn-edit" onclick="openClienteModal(${JSON.stringify(c).split('"').join("'")})">Editar</button>
         <button class="btn-del" onclick="toggleCliente('${c.id}','${c.activo==='SI'?'NO':'SI'}')">${c.activo==='SI'?'Desactivar':'Activar'}</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function renderAdminCuentas(){
@@ -1225,7 +1289,8 @@ let editingClienteId = null;
 function openClienteModal(raw){
   editingClienteId = null;
   document.getElementById('modal-cliente-title').textContent = 'Nuevo cliente';
-  ['mc-nombre','mc-tel','mc-user','mc-pass'].forEach(id=>document.getElementById(id).value='');
+  ['mc-nombre','mc-tel','mc-user','mc-pass','mc-fecha'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mc-plan').value='';
   if(raw){
     const c = typeof raw==='string'?JSON.parse(raw.replace(/'/g,'"')):raw;
     editingClienteId = c.id;
@@ -1234,6 +1299,8 @@ function openClienteModal(raw){
     document.getElementById('mc-tel').value    = c.telefono||'';
     document.getElementById('mc-user').value   = c.usuario||'';
     document.getElementById('mc-pass').value   = c.contrasena||'';
+    document.getElementById('mc-plan').value   = c.plan||'';
+    document.getElementById('mc-fecha').value  = c.fechaCompraSusc||'';
   }
   document.getElementById('modal-cliente').classList.add('open');
 }
@@ -1243,11 +1310,14 @@ async function guardarCliente(){
   const tel    = document.getElementById('mc-tel').value.trim();
   const user   = document.getElementById('mc-user').value.trim();
   const pass   = document.getElementById('mc-pass').value.trim();
+  const plan   = document.getElementById('mc-plan').value;
+  const fecha  = document.getElementById('mc-fecha').value;
   if(!nombre||!user||!pass){ alert('Completa nombre, usuario y contraseña'); return; }
   try{
     const r = await fetch(API, {method:'POST', body: JSON.stringify({
       action: editingClienteId?'editar_cliente':'nuevo_cliente',
-      token:S.token, id:editingClienteId, nombre, telefono:tel, usuario:user, contrasena:pass
+      token:S.token, id:editingClienteId, nombre, telefono:tel,
+      usuario:user, contrasena:pass, plan, fechaCompra:fecha
     })});
     const d = await r.json();
     if(d.ok){
