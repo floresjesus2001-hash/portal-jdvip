@@ -316,7 +316,7 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
       <button class="tab active" onclick="goTab('cuentas',this)">📺 Mis Cuentas</button>
       <button class="tab" onclick="goTab('ventas',this)">💰 Mis Ventas</button>
       <button class="tab" onclick="goTab('resumen',this)">📊 Resumen</button>
-      <button class="tab" onclick="goTab('precios',this)">💵 Precios</button>
+      <button class="tab" onclick="goTab('miprecios',this)">🏷️ Mis Precios</button>
     </nav>
     <main>
 
@@ -396,7 +396,33 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
         <div id="res-svcs"></div>
       </div>
 
-      <!-- PRECIOS -->
+      <!-- MIS PRECIOS -->
+      <div id="panel-miprecios" class="panel">
+        <div class="ptitle">Mis Precios de Reventa</div>
+        <div class="psub">Define tus precios para cada servicio · Se guarda automáticamente</div>
+        <div class="tasa-row" style="margin-bottom:20px">
+          <label>Mi tasa (Bs/$):</label>
+          <input class="tasa-inp" type="number" id="mi-tasa" value="760" min="1" oninput="recalcMisPrecios()">
+          <span style="font-size:11px;color:var(--mu2)">Tu tasa personal para convertir a Bs.</span>
+          <button class="btn-save" style="margin-left:auto" onclick="guardarMisPrecios()">💾 Guardar precios</button>
+          <span class="ok-msg" id="mip-ok" style="display:none">✓ Guardado</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>Servicio</th>
+              <th>Tipo</th>
+              <th style="text-align:right">Mi precio ($)</th>
+              <th style="text-align:right">En Bs.</th>
+              <th style="text-align:right">Precio base ($)</th>
+              <th style="text-align:right">Mi ganancia</th>
+            </tr></thead>
+            <tbody id="miprecios-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRECIOS GENERALES -->
       <div id="panel-precios" class="panel">
         <div class="ptitle">Lista de Precios</div>
         <div class="psub">Precios mayoristas con conversión a Bs.</div>
@@ -589,7 +615,7 @@ let S=null, DATA=null, RENOV={};
 const API_FIXED = '';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 
 // ── VERSIÓN ACTUAL DEL APP ──
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.1.4';
 
 let API = API_FIXED || localStorage.getItem('jdvip2_url') || '';
 
@@ -682,8 +708,87 @@ function renderAll(){
   renderCuentas();
   renderVentas(DATA.ventas||[]);
   renderResumen(DATA.ventas||[]);
+  renderMisPrecios();
   renderPrecios();
 }
+
+// ── MIS PRECIOS ──
+function renderMisPrecios(){
+  if(!DATA) return;
+  const precios   = DATA.precios || [];
+  const misPrecios= DATA.misPrecios || {};
+  const miTasa    = DATA.miTasa || DATA.tasa || 760;
+  document.getElementById('mi-tasa').value = miTasa;
+
+  const tbody = document.getElementById('miprecios-body');
+  tbody.innerHTML = precios.map((p,i) => {
+    const key    = (p.name+'__'+p.tipo).replace(/[^a-zA-Z0-9_]/g,'_');
+    const miP    = misPrecios[key] || '';
+    const miPNum = parseFloat(miP) || 0;
+    const bs     = miPNum > 0 ? Math.round(miPNum * miTasa).toLocaleString('es-VE') : '—';
+    const ganColor = miPNum >= p.usd ? 'var(--gn2)' : 'var(--rd2)';
+    const ganText  = miPNum > 0 ? `<span style="color:${ganColor}">${miPNum>=p.usd?'+':''}$${(miPNum-p.usd).toFixed(2)}</span>` : '—';
+    return `<tr>
+      <td style="font-weight:700;color:var(--ac)">${p.name}</td>
+      <td style="color:var(--mu2)">${p.tipo}</td>
+      <td style="text-align:right">
+        <input type="number" step="0.5" min="0" value="${miP}" data-key="${key}" data-base="${p.usd}"
+          oninput="onMiPrecioChange(this)"
+          style="width:90px;padding:5px 8px;background:var(--sf2);border:1.5px solid var(--bd);
+          border-radius:7px;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:13px;
+          outline:none;text-align:right"
+          onfocus="this.style.borderColor='var(--ac)'" onblur="this.style.borderColor='var(--bd)'">
+      </td>
+      <td style="text-align:right;color:var(--gn2);font-family:'JetBrains Mono',monospace">${miPNum>0?'Bs.'+bs:'—'}</td>
+      <td style="text-align:right;color:var(--mu2)">$${p.usd.toFixed(2)}</td>
+      <td style="text-align:right">${ganText}</td>
+    </tr>`;
+  }).join('');
+}
+
+function onMiPrecioChange(input){
+  const tasa  = parseFloat(document.getElementById('mi-tasa').value)||760;
+  const val   = parseFloat(input.value)||0;
+  const base  = parseFloat(input.dataset.base)||0;
+  const cells = input.closest('tr').querySelectorAll('td');
+  cells[3].textContent = val>0 ? 'Bs.'+Math.round(val*tasa).toLocaleString('es-VE') : '—';
+  cells[3].style.color = 'var(--gn2)';
+  if(val>0){
+    const gan = val-base;
+    cells[5].innerHTML = `<span style="color:${gan>=0?'var(--gn2)':'var(--rd2)'}">${gan>=0?'+':''}$${gan.toFixed(2)}</span>`;
+  } else { cells[5].textContent='—'; }
+}
+
+function recalcMisPrecios(){
+  const tasa = parseFloat(document.getElementById('mi-tasa').value)||760;
+  document.querySelectorAll('#miprecios-body input[data-key]').forEach(input=>{
+    const val  = parseFloat(input.value)||0;
+    const cells= input.closest('tr').querySelectorAll('td');
+    cells[3].textContent = val>0?'Bs.'+Math.round(val*tasa).toLocaleString('es-VE'):'—';
+  });
+}
+
+async function guardarMisPrecios(){
+  const miTasa = parseFloat(document.getElementById('mi-tasa').value)||760;
+  const precios = {};
+  document.querySelectorAll('#miprecios-body input[data-key]').forEach(input=>{
+    const val = parseFloat(input.value)||0;
+    if(val>0) precios[input.dataset.key]=val;
+  });
+  try{
+    const r = await fetch(API,{method:'POST',body:JSON.stringify({
+      action:'guardar_mis_precios',token:S.token,precios,tasa:miTasa
+    })});
+    const d = await r.json();
+    if(d.ok){
+      DATA.misPrecios=precios; DATA.miTasa=miTasa;
+      const ok=document.getElementById('mip-ok');
+      ok.style.display='inline'; setTimeout(()=>ok.style.display='none',2000);
+    }
+  }catch(e){alert('Error al guardar');}
+}
+
+
 
 // ── CUENTAS ──
 function renderCuentas(){
@@ -693,11 +798,11 @@ function renderCuentas(){
   // Banner de suscripción
   const banner = document.getElementById('susc-banner');
   if(cliente.fechaVenceSusc){
-    const ds = cliente.diasSusc;
+    const ds = parseInt(cliente.diasSusc) || 0;
     const bc = ds<0?'rgba(239,68,68,.12)':ds<=7?'rgba(245,158,11,.12)':'rgba(34,197,94,.08)';
     const bc2= ds<0?'rgba(239,68,68,.3)':ds<=7?'rgba(245,158,11,.3)':'rgba(34,197,94,.25)';
     const tc = ds<0?'var(--rd2)':ds<=7?'var(--yw2)':'var(--gn2)';
-    const txt= ds<0?'Tu suscripción ha vencido':ds===0?'Tu suscripción vence hoy':ds<=7?`Tu suscripción vence en ${ds} días`:`Suscripción activa`;
+    const txt= ds<0?'Tu suscripción ha vencido':ds===0?'Tu suscripción vence hoy':ds<=7?`Tu suscripción vence en ${ds} días`:`Suscripción activa · ${ds} días restantes`;
     banner.innerHTML=`
       <div style="background:${bc};border:1px solid ${bc2};border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div>
@@ -708,7 +813,7 @@ function renderCuentas(){
             · Vence: ${cliente.fechaVenceSusc}
           </div>
         </div>
-        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:${tc}">${ds<0?'VENCIDA':ds+'d'}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:${tc}">${ds<0?'VENCIDA':ds+'d'}</span>
       </div>`;
   } else {
     banner.innerHTML='';
