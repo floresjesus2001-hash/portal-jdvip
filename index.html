@@ -341,7 +341,7 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Fecha venta</th><th>Servicio</th><th>Cliente</th><th>Precio $</th><th>Precio Bs</th><th>Vencimiento</th><th>Días rest.</th><th>Método</th><th>Notas</th></tr></thead>
+            <thead><tr><th>Fecha venta</th><th>Servicio</th><th>Cuenta</th><th>Cliente</th><th>Precio $</th><th>Precio Bs</th><th>Vencimiento</th><th>Días rest.</th><th>Método</th><th>Notas</th></tr></thead>
             <tbody id="ventas-body"></tbody>
           </table>
         </div>
@@ -408,7 +408,7 @@ let S=null, DATA=null, RENOV={};
 const API_FIXED = '';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 
 // ── VERSIÓN ACTUAL DEL APP ──
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 let API = API_FIXED || localStorage.getItem('jdvip2_url') || '';
 
@@ -602,7 +602,7 @@ function renderVentas(ventas){
   const tbody=document.getElementById('ventas-body');
   const tasa=parseFloat(document.getElementById('tasa').value)||760;
   if(!ventas||!ventas.length){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--mu2)">Aún no tienes ventas registradas</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--mu2)">Aún no tienes ventas registradas</td></tr>';
     return;
   }
   const today=new Date(); today.setHours(0,0,0,0);
@@ -620,6 +620,7 @@ function renderVentas(ventas){
     return `<tr>
       <td style="color:var(--mu2)">${v.fecha}</td>
       <td class="td-s">${ICONS[v.servicio]||''} ${v.servicio}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ac);opacity:.8">${v.correo&&v.correo!=='—'?v.correo:'—'}</td>
       <td style="color:var(--tx2)">${v.cliente}</td>
       <td class="td-u">$${v.precioUsd.toFixed(2)}</td>
       <td class="td-b">Bs.${Math.round(v.precioBS).toLocaleString('es-VE')}</td>
