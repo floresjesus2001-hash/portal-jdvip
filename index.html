@@ -319,6 +319,15 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
                 <option>Zelle</option><option>Binance</option><option>Efectivo</option>
               </select>
             </div>
+            <div class="ff"><label>Fecha de venta</label>
+              <input id="vfecha" type="date">
+            </div>
+            <div class="ff"><label>Fecha vencimiento</label>
+              <input id="vvence" type="date" oninput="calcDiasVenta()">
+            </div>
+            <div class="ff"><label>Días hasta vencer</label>
+              <input id="vdias" type="text" placeholder="—" readonly style="opacity:.6">
+            </div>
           </div>
           <div class="ff" style="margin-bottom:12px">
             <label>Notas (opcional)</label>
@@ -329,7 +338,7 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Fecha</th><th>Servicio</th><th>Cliente</th><th>Precio $</th><th>Precio Bs</th><th>Método</th><th>Notas</th></tr></thead>
+            <thead><tr><th>Fecha venta</th><th>Servicio</th><th>Cliente</th><th>Precio $</th><th>Precio Bs</th><th>Vencimiento</th><th>Días rest.</th><th>Método</th><th>Notas</th></tr></thead>
             <tbody id="ventas-body"></tbody>
           </table>
         </div>
@@ -391,10 +400,32 @@ const ICONS={'HBO MAX':'🎬','DISNEY+':'🏰','AMAZON PRIME':'📦','CANVA PRO'
   'DEEZER':'🎵','SPOTIFY':'🎶','FLUJO TV':'📡'};
 
 let S=null, DATA=null, RENOV={};
-let API=localStorage.getItem('jdvip2_url')||'';
 
-window.onload=()=>{
-  if(API){ document.getElementById('url-inp').value=API; document.getElementById('url-box').style.display='none'; }
+// ── PON AQUÍ TU URL DEL APPS SCRIPT ──
+const API_FIXED = '';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
+
+// ── VERSIÓN ACTUAL DEL APP ──
+const APP_VERSION = '1.0.0';
+
+let API = API_FIXED || localStorage.getItem('jdvip2_url') || '';
+
+// ── AUTO-UPDATE: compara versión con GitHub cada vez que abre ──
+async function checkVersion(){
+  try{
+    const base = window.location.href.replace(/\/[^/]*$/, '/');
+    const r = await fetch(`${base}version.json?t=${Date.now()}`);
+    const d = await r.json();
+    if(d.version && d.version !== APP_VERSION){
+      // Hay versión nueva — recargar limpiando caché
+      window.location.reload(true);
+    }
+  } catch(e){ /* sin conexión o archivo no existe, ignorar */ }
+}
+
+window.onload=async ()=>{
+  await checkVersion();
+  if(API_FIXED) document.getElementById('url-box').style.display='none';
+  else if(API){ document.getElementById('url-inp').value=API; document.getElementById('url-box').style.display='none'; }
   const saved=localStorage.getItem('jdvip2_session');
   if(saved){ S=JSON.parse(saved); loadData(); }
 };
@@ -525,6 +556,14 @@ function calcBs(){
   const tasa=parseFloat(document.getElementById('tasa').value)||760;
   document.getElementById('vbs').value=usd>0?'Bs.'+Math.round(usd*tasa).toLocaleString('es-VE'):'—';
 }
+function calcDiasVenta(){
+  const vence=document.getElementById('vvence').value;
+  if(!vence){ document.getElementById('vdias').value='—'; return; }
+  const today=new Date(); today.setHours(0,0,0,0);
+  const fv=new Date(vence+'T00:00:00');
+  const dias=Math.round((fv-today)/86400000);
+  document.getElementById('vdias').value=dias<0?'Vencida':dias===0?'Hoy':dias+' días';
+}
 
 async function guardar(){
   const svc=document.getElementById('vs').value;
@@ -537,11 +576,13 @@ async function guardar(){
       servicio:svc,clienteNombre:cli,
       correo:document.getElementById('vcor').value.trim(),
       precioUsd:usd,metodo:document.getElementById('vm').value,
+      fechaVenta:document.getElementById('vfecha').value,
+      fechaVence:document.getElementById('vvence').value,
       notas:document.getElementById('vn').value.trim()
     })});
     const d=await r.json();
     if(d.ok){
-      ['vs','vc','vcor','vp','vbs','vn'].forEach(id=>{
+      ['vs','vc','vcor','vp','vbs','vn','vfecha','vvence','vdias'].forEach(id=>{
         const el=document.getElementById(id);
         if(el.tagName==='SELECT')el.value=''; else el.value='';
       });
@@ -558,19 +599,32 @@ function renderVentas(ventas){
   const tbody=document.getElementById('ventas-body');
   const tasa=parseFloat(document.getElementById('tasa').value)||760;
   if(!ventas||!ventas.length){
-    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--mu)">Aún no tienes ventas registradas</td></tr>';
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--mu2)">Aún no tienes ventas registradas</td></tr>';
     return;
   }
-  tbody.innerHTML=ventas.map(v=>`
-    <tr>
-      <td style="color:var(--mu)">${v.fecha}</td>
+  const today=new Date(); today.setHours(0,0,0,0);
+  tbody.innerHTML=ventas.map(v=>{
+    let diasHtml='<td style="color:var(--mu2)">—</td>';
+    let venceHtml='<td style="color:var(--mu2)">—</td>';
+    if(v.fechaVence){
+      const fv=new Date(v.fechaVence+'T00:00:00');
+      const dias=Math.round((fv-today)/86400000);
+      const dc=dias<0?'var(--rd2)':dias<=7?'var(--yw2)':'var(--gn2)';
+      const dt=dias<0?`Vencida`:dias===0?'Hoy':`${dias}d`;
+      venceHtml=`<td style="color:var(--mu2)">${v.fechaVence}</td>`;
+      diasHtml=`<td style="color:${dc};font-weight:600;font-family:'JetBrains Mono',monospace">${dt}</td>`;
+    }
+    return `<tr>
+      <td style="color:var(--mu2)">${v.fecha}</td>
       <td class="td-s">${ICONS[v.servicio]||''} ${v.servicio}</td>
-      <td>${v.cliente}</td>
+      <td style="color:var(--tx2)">${v.cliente}</td>
       <td class="td-u">$${v.precioUsd.toFixed(2)}</td>
       <td class="td-b">Bs.${Math.round(v.precioBS).toLocaleString('es-VE')}</td>
-      <td style="color:var(--mu)">${v.metodo||'—'}</td>
-      <td style="color:var(--mu);font-size:11px">${v.notas||'—'}</td>
-    </tr>`).join('');
+      ${venceHtml}${diasHtml}
+      <td style="color:var(--mu2)">${v.metodo||'—'}</td>
+      <td style="color:var(--mu2);font-size:11px">${v.notas||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── RESUMEN ──
@@ -655,9 +709,9 @@ function useDemo(){
       {codigo:'DEEZER001',correo:'jdsvip1@jdshd.lat',pass:'hola1212',servicio:'DEEZER',tipo:'Cuenta',plan:'Individual',estado:'VIGENTE',fechaVenc:add(hoy,30),diasRestantes:30,notas:''},
     ],
     ventas:[
-      {id:'V001',fecha:add(hoy,-5),servicio:'HBO MAX',cliente:'Carlos Perez',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Pago Móvil',notas:''},
-      {id:'V002',fecha:add(hoy,-3),servicio:'DISNEY+',cliente:'Laura Gomez',correo:'—',precioUsd:4.0,precioBS:3040,metodo:'Transferencia',notas:''},
-      {id:'V003',fecha:add(hoy,-1),servicio:'HBO MAX',cliente:'Roberto Silva',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Binance',notas:'Renovación'},
+      {id:'V001',fecha:add(hoy,-5),servicio:'HBO MAX',cliente:'Carlos Perez',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Pago Móvil',fechaVence:add(hoy,25),notas:''},
+      {id:'V002',fecha:add(hoy,-3),servicio:'DISNEY+',cliente:'Laura Gomez',correo:'—',precioUsd:4.0,precioBS:3040,metodo:'Transferencia',fechaVence:add(hoy,5),notas:''},
+      {id:'V003',fecha:add(hoy,-1),servicio:'HBO MAX',cliente:'Roberto Silva',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Binance',fechaVence:add(hoy,-2),notas:'Renovación'},
     ],
     precios:[
       {name:'HBO / Max',tipo:'Perfil',duracion:'1 mes',usd:3.0},
