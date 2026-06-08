@@ -405,10 +405,10 @@ const ICONS={'HBO MAX':'🎬','DISNEY+':'🏰','AMAZON PRIME':'📦','CANVA PRO'
 let S=null, DATA=null, RENOV={};
 
 // ── PON AQUÍ TU URL DEL APPS SCRIPT ──
-const API_FIXED = 'https://script.google.com/macros/s/AKfycbzPks52eQHifHr3zRAISgd2cNSYUk-LwqkvzP7wCcwdJw1TNIRR2AfMw9ZSqPzWZSiiLQ/exec';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
+const API_FIXED = '';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 
 // ── VERSIÓN ACTUAL DEL APP ──
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 
 let API = API_FIXED || localStorage.getItem('jdvip2_url') || '';
 
@@ -536,11 +536,26 @@ function renderCuentas(){
       const mostrarRenovar=(c.estado==='VENCIDA')||(c.estado==='VIGENTE'&&d!==null&&d<=7);
       const e=s=>String(s).replace(/'/g,"&#39;");
       const card=document.createElement('div'); card.className='cuenta';
+
+      // Indicador de pantallas
+      let pantallasHtml = '';
+      if (c.pantallasTotal > 0) {
+        const pct = Math.round((c.pantallasDisp / c.pantallasTotal) * 100);
+        const pc = c.pantallasDisp === 0 ? 'var(--rd2)' : c.pantallasDisp <= 1 ? 'var(--yw2)' : 'var(--gn2)';
+        pantallasHtml = `<div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--mu2)">Pantallas:</span>
+          <span style="font-size:12px;font-weight:700;color:${pc}">${c.pantallasDisp}/${c.pantallasTotal} disponibles</span>
+          <div style="flex:1;max-width:60px;background:var(--bd);border-radius:3px;height:4px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${pc};border-radius:3px;transition:width .3s"></div>
+          </div>
+        </div>`;
+      }
       card.innerHTML=`
         <div class="cuenta-left">
           <div class="ce">${c.correo} <button class="copy-b" onclick="cp('${e(c.correo)}',this)">copiar</button></div>
           <div class="cp">${c.pass} <button class="copy-b" onclick="cp('${e(c.pass)}',this)">copiar</button></div>
-          ${c.notas?`<div style="font-size:10px;color:var(--mu);margin-top:3px">${c.notas}</div>`:''}
+          ${c.notas?`<div style="font-size:10px;color:var(--mu2);margin-top:3px">${c.notas}</div>`:''}
+          ${pantallasHtml}
         </div>
         <div class="cuenta-right">
           <span class="dias ${bc}">${bt}</span>
@@ -704,13 +719,13 @@ function useDemo(){
     tasa: 760,
     cliente:{ id:'3', nombre:'Hector Suarez', telefono:'0412-0000002', rol:'cliente' },
     cuentas:[
-      {codigo:'HBO001',correo:'jdstreamingcom+ch75@gmail.com',pass:'20caramelo58',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,15),diasRestantes:15,notas:''},
-      {codigo:'HBO002',correo:'jdstreamingcom+ch34@gmail.com',pass:'76user76',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,5),diasRestantes:5,notas:''},
-      {codigo:'HBO003',correo:'jdstreamingcom+fl427@gmail.com',pass:'38user45',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,3),diasRestantes:3,notas:''},
-      {codigo:'HBO004',correo:'jdstreamingcom+hus1@gmail.com',pass:'violet2123',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VENCIDA',fechaVenc:add(hoy,-5),diasRestantes:-5,notas:'Renovar'},
-      {codigo:'DIS001',correo:'jdstreamingcom+ppdn32@gmail.com',pass:'67felice34',servicio:'DISNEY+',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,19),diasRestantes:19,notas:''},
-      {codigo:'DIS002',correo:'jdstreamingcom+flo871@gmail.com',pass:'87user43',servicio:'DISNEY+',tipo:'Perfil',plan:'Premium',estado:'VENCIDA',fechaVenc:add(hoy,-3),diasRestantes:-3,notas:''},
-      {codigo:'DEEZER001',correo:'jdsvip1@jdshd.lat',pass:'hola1212',servicio:'DEEZER',tipo:'Cuenta',plan:'Individual',estado:'VIGENTE',fechaVenc:add(hoy,30),diasRestantes:30,notas:''},
+      {codigo:'HBO001',correo:'jdstreamingcom+ch75@gmail.com',pass:'20caramelo58',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,15),diasRestantes:15,notas:'',pantallasTotal:5,pantallasUsadas:3,pantallasDisp:2},
+      {codigo:'HBO002',correo:'jdstreamingcom+ch34@gmail.com',pass:'76user76',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,5),diasRestantes:5,notas:'',pantallasTotal:5,pantallasUsadas:5,pantallasDisp:0},
+      {codigo:'HBO003',correo:'jdstreamingcom+fl427@gmail.com',pass:'38user45',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,3),diasRestantes:3,notas:'',pantallasTotal:5,pantallasUsadas:2,pantallasDisp:3},
+      {codigo:'HBO004',correo:'jdstreamingcom+hus1@gmail.com',pass:'violet2123',servicio:'HBO MAX',tipo:'Perfil',plan:'Premium',estado:'VENCIDA',fechaVenc:add(hoy,-5),diasRestantes:-5,notas:'Renovar',pantallasTotal:5,pantallasUsadas:0,pantallasDisp:5},
+      {codigo:'DIS001',correo:'jdstreamingcom+ppdn32@gmail.com',pass:'67felice34',servicio:'DISNEY+',tipo:'Perfil',plan:'Premium',estado:'VIGENTE',fechaVenc:add(hoy,19),diasRestantes:19,notas:'',pantallasTotal:7,pantallasUsadas:4,pantallasDisp:3},
+      {codigo:'DIS002',correo:'jdstreamingcom+flo871@gmail.com',pass:'87user43',servicio:'DISNEY+',tipo:'Perfil',plan:'Premium',estado:'VENCIDA',fechaVenc:add(hoy,-3),diasRestantes:-3,notas:'',pantallasTotal:7,pantallasUsadas:0,pantallasDisp:7},
+      {codigo:'DEEZER001',correo:'jdsvip1@jdshd.lat',pass:'hola1212',servicio:'DEEZER',tipo:'Cuenta',plan:'Individual',estado:'VIGENTE',fechaVenc:add(hoy,30),diasRestantes:30,notas:'',pantallasTotal:1,pantallasUsadas:1,pantallasDisp:0},
     ],
     ventas:[
       {id:'V001',fecha:add(hoy,-5),servicio:'HBO MAX',cliente:'Carlos Perez',correo:'—',precioUsd:3.0,precioBS:2280,metodo:'Pago Móvil',fechaVence:add(hoy,25),notas:''},
