@@ -225,6 +225,40 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
 
 .empty{text-align:center;padding:60px 20px;color:var(--mu2);font-size:14px;font-weight:400}
 
+/* ── ADMIN ── */
+#admin{display:none}
+.admin-badge{background:var(--pu);color:white;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:20px;margin-left:8px;letter-spacing:.5px}
+.adash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:22px}
+.adash-card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;
+  padding:16px;position:relative;overflow:hidden;transition:border-color .2s}
+.adash-card:hover{border-color:var(--sc,var(--ac))}
+.adash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--sc,var(--ac))}
+.adash-v{font-weight:800;font-size:28px;color:var(--sc,var(--ac));letter-spacing:-.5px}
+.adash-l{font-size:11px;color:var(--mu2);margin-top:3px;font-weight:500}
+.alert-item{background:var(--sf2);border:1px solid rgba(239,68,68,.3);border-radius:10px;
+  padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.alert-svc{font-weight:700;font-size:13px;color:var(--ac)}
+.alert-cliente{font-size:12px;color:var(--tx2)}
+.atbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--bd);margin-bottom:22px}
+.atbl-wrap table{min-width:700px}
+.btn-add{font-family:'Inter',sans-serif;font-weight:700;font-size:12px;padding:8px 16px;
+  background:var(--ac);color:var(--bg);border:none;border-radius:8px;cursor:pointer;transition:all .2s}
+.btn-add:hover{background:var(--ac2)}
+.btn-edit{font-size:11px;padding:3px 9px;background:transparent;border:1px solid var(--bd);
+  border-radius:5px;color:var(--mu2);cursor:pointer;font-family:'Inter',sans-serif;
+  font-weight:500;transition:all .15s;margin-right:4px}
+.btn-edit:hover{border-color:var(--ac);color:var(--ac)}
+.btn-del{font-size:11px;padding:3px 9px;background:transparent;border:1px solid var(--bd);
+  border-radius:5px;color:var(--mu2);cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
+.btn-del:hover{border-color:var(--rd2);color:var(--rd2)}
+.notif-form{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:22px}
+.notif-targets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.notif-target{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--bd);
+  cursor:pointer;color:var(--mu2);background:transparent;transition:all .15s;font-family:'Inter',sans-serif}
+.notif-target:hover,.notif-target.sel{border-color:var(--pu);color:var(--pu);background:rgba(124,58,237,.1)}
+.notif-target.all.sel{border-color:var(--ac);color:var(--ac);background:rgba(0,212,255,.1)}
+
 @media(max-width:580px){
   header,nav,main{padding-left:16px;padding-right:16px}
   .fgrid{grid-template-columns:1fr 1fr}
@@ -382,6 +416,137 @@ tbody td{padding:10px 13px;font-size:13px;font-weight:400}
   </div>
 </div>
 
+<!-- ADMIN APP -->
+<div id="admin">
+  <header>
+    <div class="hlogo">JD<span>Stream</span>VIP <span class="admin-badge">ADMIN</span></div>
+    <div class="hright">
+      <div class="huser">Hola, <strong id="a-nombre">—</strong></div>
+      <button class="btn-out" onclick="logout()">Salir</button>
+    </div>
+  </header>
+  <div style="padding:0 22px">
+    <nav>
+      <button class="tab active" onclick="goAdminTab('dashboard',this)">📊 Dashboard</button>
+      <button class="tab" onclick="goAdminTab('aclientes',this)">👥 Clientes</button>
+      <button class="tab" onclick="goAdminTab('acuentas',this)">📦 Cuentas</button>
+      <button class="tab" onclick="goAdminTab('aventas',this)">💰 Ventas</button>
+      <button class="tab" onclick="goAdminTab('notif',this)">🔔 Notificaciones</button>
+    </nav>
+    <main>
+
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <div class="ptitle">Dashboard</div>
+        <div class="psub">Resumen general del negocio</div>
+        <div class="adash-grid" id="a-kpis"></div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:12px;color:var(--tx)">⚠️ Vencimientos próximos (7 días)</div>
+        <div id="a-alerts"></div>
+        <div style="font-weight:700;font-size:15px;margin:20px 0 12px;color:var(--tx)">📋 Resumen por cliente</div>
+        <div class="atbl-wrap">
+          <table>
+            <thead><tr><th>Cliente</th><th style="text-align:right">Vigentes</th><th style="text-align:right">Vencidas</th><th style="text-align:right">Ventas</th><th style="text-align:right">Pantallas usadas</th></tr></thead>
+            <tbody id="a-clresumen"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="panel-aclientes" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div><div class="ptitle">Clientes</div><div class="psub" style="margin:0">Directorio de clientes mayoristas</div></div>
+          <button class="btn-add" onclick="openClienteModal()">+ Nuevo cliente</button>
+        </div>
+        <div class="atbl-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="a-clientes-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CUENTAS -->
+      <div id="panel-acuentas" class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div><div class="ptitle">Cuentas</div><div class="psub" style="margin:0">Todas las cuentas asignadas</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input class="search" id="a-cuentas-search" type="text" placeholder="Buscar..." oninput="renderAdminCuentas()" style="width:180px">
+            <select id="a-cuentas-filter" onchange="renderAdminCuentas()" style="padding:8px 12px;background:var(--sf2);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none">
+              <option value="">Todos</option><option value="VIGENTE">Vigentes</option><option value="VENCIDA">Vencidas</option>
+            </select>
+          </div>
+        </div>
+        <div class="atbl-wrap">
+          <table>
+            <thead><tr><th>Correo</th><th>Servicio</th><th>Cliente</th><th>Estado</th><th>Vencimiento</th><th>Pantallas</th><th>Acciones</th></tr></thead>
+            <tbody id="a-cuentas-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VENTAS ADMIN -->
+      <div id="panel-aventas" class="panel">
+        <div class="ptitle">Todas las Ventas</div>
+        <div class="psub">Ventas registradas por todos los clientes</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <input class="search" id="a-ventas-search" type="text" placeholder="Buscar cliente o servicio..." oninput="renderAdminVentas()" style="width:220px">
+        </div>
+        <div class="adash-grid" id="a-ventas-kpis"></div>
+        <div class="atbl-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Cuenta</th><th>Vendido a</th><th>Precio $</th><th>Precio Bs</th><th>Vencimiento</th><th>Días</th></tr></thead>
+            <tbody id="a-ventas-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- NOTIFICACIONES -->
+      <div id="panel-notif" class="panel">
+        <div class="ptitle">Notificaciones</div>
+        <div class="psub">Envía mensajes a tus clientes por email</div>
+        <div class="notif-form">
+          <div class="ff" style="margin-bottom:12px">
+            <label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:8px">Destinatarios</label>
+            <div class="notif-targets" id="notif-targets">
+              <button class="notif-target all" onclick="toggleNotifTarget('__all__',this)">📢 Todos los clientes</button>
+            </div>
+          </div>
+          <div class="ff" style="margin-bottom:12px">
+            <label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:6px">Asunto</label>
+            <input id="notif-subject" type="text" placeholder="Ej: Renovación disponible, Nueva cuenta asignada..." style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none">
+          </div>
+          <div class="ff" style="margin-bottom:14px">
+            <label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:6px">Mensaje</label>
+            <textarea id="notif-body" rows="5" placeholder="Escribe tu mensaje aquí..." style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none;resize:vertical"></textarea>
+          </div>
+          <button class="btn-save" onclick="enviarNotif()">📨 Enviar notificación</button>
+          <span class="ok-msg" id="notif-ok" style="display:none;margin-left:10px">✓ Enviado</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-bg" id="modal-cliente">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-x" onclick="document.getElementById('modal-cliente').classList.remove('open')">✕</button>
+    <h3 id="modal-cliente-title">Nuevo cliente</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Nombre</label><input id="mc-nombre" type="text" placeholder="Nombre completo" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
+      <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Teléfono</label><input id="mc-tel" type="text" placeholder="04XX-XXXXXXX" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
+      <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Usuario</label><input id="mc-user" type="text" placeholder="usuario" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
+      <div class="ff"><label style="font-size:11px;color:var(--mu2);font-weight:600;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:5px">Contraseña</label><input id="mc-pass" type="text" placeholder="contraseña" style="width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);font-family:'Inter',sans-serif;font-size:13px;outline:none"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('modal-cliente').classList.remove('open')">Cancelar</button>
+      <button class="btn-send" onclick="guardarCliente()">Guardar</button>
+    </div>
+    <div style="font-size:12px;color:var(--gn2);margin-top:8px;display:none" id="mc-ok">✓ Guardado</div>
+  </div>
+</div>
+
 <!-- MODAL RENOVACIÓN -->
 <div class="modal-bg" id="modal">
   <div class="modal">
@@ -410,10 +575,10 @@ const ICONS={'HBO MAX':'🎬','DISNEY+':'🏰','AMAZON PRIME':'📦','CANVA PRO'
 let S=null, DATA=null, RENOV={};
 
 // ── PON AQUÍ TU URL DEL APPS SCRIPT ──
-const API_FIXED = 'https://script.google.com/macros/s/AKfycbw7OEZcr1dlNNa-t8iJwDrn1W_8--syOA7T7t6y_8EEuFTX_XETr9M9YrVmGe5IXzSkuw/exec';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
+const API_FIXED = '';  // Ejemplo: 'https://script.google.com/macros/s/AKfy.../exec'
 
 // ── VERSIÓN ACTUAL DEL APP ──
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.7';
 
 let API = API_FIXED || localStorage.getItem('jdvip2_url') || '';
 
@@ -477,6 +642,12 @@ function showErr(m){
 async function loadData(){
   if(!S)return;
   try{
+    // Si es admin, cargar datos de admin directamente
+    if(S.rol==='admin'){
+      document.getElementById('login-wrap').style.display='none';
+      showAdmin();
+      return;
+    }
     const r=await fetch(`${API}?action=client&token=${S.token}`);
     const d=await r.json();
     if(!d.ok){ if(d.error&&d.error.includes('expirada'))logout(); return; }
@@ -833,9 +1004,287 @@ function goTab(id,el){
   document.getElementById('panel-'+id).classList.add('active');
   el.classList.add('active');
 }
+// ── ADMIN ──
+let ADMIN_DATA = null;
+let notifTargets = new Set();
+
+function showAdmin(){
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('admin').style.display='block';
+  document.getElementById('a-nombre').textContent = S.nombre;
+  loadAdminData();
+}
+
+async function loadAdminData(){
+  try{
+    const r = await fetch(`${API}?action=admin_data&token=${S.token}`);
+    const d = await r.json();
+    if(!d.ok){ console.error(d.error); return; }
+    ADMIN_DATA = d;
+    renderAdminDashboard();
+    renderAdminClientes();
+    renderAdminCuentas();
+    renderAdminVentas();
+    renderNotifTargets();
+  }catch(e){ console.error(e); }
+}
+
+function renderAdminDashboard(){
+  if(!ADMIN_DATA) return;
+  const {cuentas, ventas, clientes} = ADMIN_DATA;
+  const vig  = cuentas.filter(c=>c.estado==='VIGENTE').length;
+  const ven  = cuentas.filter(c=>c.estado==='VENCIDA').length;
+  const prox = cuentas.filter(c=>c.estado==='VIGENTE'&&c.diasRestantes!==null&&c.diasRestantes<=7).length;
+  const ingUsd = ventas.reduce((a,v)=>a+(v.precioUsd||0),0);
+
+  document.getElementById('a-kpis').innerHTML=`
+    <div class="adash-card" style="--sc:var(--gn2)"><div class="adash-v">${vig}</div><div class="adash-l">Cuentas vigentes</div></div>
+    <div class="adash-card" style="--sc:var(--yw2)"><div class="adash-v">${prox}</div><div class="adash-l">Vencen en 7d</div></div>
+    <div class="adash-card" style="--sc:var(--rd2)"><div class="adash-v">${ven}</div><div class="adash-l">Vencidas</div></div>
+    <div class="adash-card" style="--sc:var(--ac)"><div class="adash-v">${clientes.length}</div><div class="adash-l">Clientes</div></div>
+    <div class="adash-card" style="--sc:var(--yw2)"><div class="adash-v">$${ingUsd.toFixed(0)}</div><div class="adash-l">Ingresos totales</div></div>
+    <div class="adash-card" style="--sc:var(--pu)"><div class="adash-v">${ventas.length}</div><div class="adash-l">Ventas registradas</div></div>`;
+
+  // Alertas
+  const alertas = cuentas.filter(c=>c.estado==='VIGENTE'&&c.diasRestantes!==null&&c.diasRestantes<=7)
+    .sort((a,b)=>a.diasRestantes-b.diasRestantes);
+  const alertDiv = document.getElementById('a-alerts');
+  if(!alertas.length){ alertDiv.innerHTML='<div class="empty" style="padding:20px">Sin vencimientos próximos 🎉</div>'; }
+  else {
+    alertDiv.innerHTML = alertas.map(c=>`
+      <div class="alert-item">
+        <div>
+          <div class="alert-svc">${ICONS[c.servicio]||''} ${c.servicio}</div>
+          <div class="alert-cliente">${c.cliente} · ${c.correo}</div>
+        </div>
+        <span class="dias ${c.diasRestantes<=3?'d-bad':'d-warn'}">${c.diasRestantes===0?'Hoy':c.diasRestantes+'d'}</span>
+      </div>`).join('');
+  }
+
+  // Resumen por cliente
+  const byCliente={};
+  cuentas.forEach(c=>{
+    if(!byCliente[c.cliente]) byCliente[c.cliente]={v:0,x:0,pant:0,pantTotal:0};
+    if(c.estado==='VIGENTE') byCliente[c.cliente].v++;
+    else byCliente[c.cliente].x++;
+    byCliente[c.cliente].pant += c.pantallasUsadas||0;
+    byCliente[c.cliente].pantTotal += c.pantallasTotal||0;
+  });
+  const byClienteVentas={};
+  ventas.forEach(v=>{ byClienteVentas[v.clienteNombre]=(byClienteVentas[v.clienteNombre]||0)+1; });
+
+  document.getElementById('a-clresumen').innerHTML = Object.entries(byCliente)
+    .sort((a,b)=>b[1].v-a[1].v)
+    .map(([nombre,d])=>`
+    <tr>
+      <td style="font-weight:600;color:var(--tx2)">${nombre}</td>
+      <td style="text-align:right;color:var(--gn2);font-weight:600">${d.v}</td>
+      <td style="text-align:right;color:var(--rd2)">${d.x||'—'}</td>
+      <td style="text-align:right;color:var(--mu2)">${byClienteVentas[nombre]||0}</td>
+      <td style="text-align:right;color:var(--ac)">${d.pantTotal>0?d.pant+'/'+d.pantTotal:'—'}</td>
+    </tr>`).join('');
+}
+
+function renderAdminClientes(){
+  if(!ADMIN_DATA) return;
+  document.getElementById('a-clientes-body').innerHTML = ADMIN_DATA.clientes.map(c=>`
+    <tr>
+      <td style="color:var(--mu2);font-size:11px">${c.id}</td>
+      <td style="font-weight:600;color:var(--tx2)">${c.nombre}</td>
+      <td style="color:var(--mu2)">${c.telefono||'—'}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ac)">${c.usuario}</td>
+      <td><span class="pill ${c.rol==='admin'?'p-prox':'p-rev'}">${c.rol}</span></td>
+      <td><span class="pill ${c.activo==='SI'?'p-vig':'d-ven'}">${c.activo==='SI'?'Activo':'Inactivo'}</span></td>
+      <td>
+        <button class="btn-edit" onclick="openClienteModal(${JSON.stringify(c).split('"').join("'")})">Editar</button>
+        <button class="btn-del" onclick="toggleCliente('${c.id}','${c.activo==='SI'?'NO':'SI'}')">${c.activo==='SI'?'Desactivar':'Activar'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function renderAdminCuentas(){
+  if(!ADMIN_DATA) return;
+  const q = (document.getElementById('a-cuentas-search').value||'').toLowerCase();
+  const f = document.getElementById('a-cuentas-filter').value;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let data = ADMIN_DATA.cuentas.filter(c=>{
+    if(f && c.estado!==f) return false;
+    if(q && !c.correo.toLowerCase().includes(q) && !c.cliente.toLowerCase().includes(q) && !c.servicio.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('a-cuentas-body').innerHTML = data.map(c=>{
+    const dc = c.diasRestantes!==null?(c.diasRestantes<0?'d-ven':c.diasRestantes<=7?'d-warn':'d-ok'):'';
+    const dt = c.diasRestantes!==null?(c.diasRestantes<0?'Vencida':c.diasRestantes+'d'):('—');
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ac)">${c.correo}</td>
+      <td style="font-weight:700;color:var(--tx2)">${ICONS[c.servicio]||''} ${c.servicio}</td>
+      <td style="color:var(--tx2)">${c.cliente}</td>
+      <td><span class="pill ${c.estado==='VIGENTE'?'p-vig':'p-ven'}">${c.estado}</span></td>
+      <td style="color:var(--mu2)">${c.fechaVenc||'—'}</td>
+      <td style="color:var(--ac)">${c.pantallasTotal>0?c.pantallasDisp+'/'+c.pantallasTotal:'—'}</td>
+      <td>
+        <button class="btn-edit" onclick="toggleEstadoCuenta('${c.correo}','${c.estado==='VIGENTE'?'VENCIDA':'VIGENTE'}')">${c.estado==='VIGENTE'?'Marcar vencida':'Reactivar'}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAdminVentas(){
+  if(!ADMIN_DATA) return;
+  const q = (document.getElementById('a-ventas-search').value||'').toLowerCase();
+  const ventas = ADMIN_DATA.ventas.filter(v=>
+    !q || v.clienteNombre.toLowerCase().includes(q) || v.servicio.toLowerCase().includes(q)
+  );
+  const tasa = parseFloat(document.getElementById('tasa')?.value||760);
+  const totalUsd = ventas.reduce((a,v)=>a+(v.precioUsd||0),0);
+
+  document.getElementById('a-ventas-kpis').innerHTML=`
+    <div class="adash-card" style="--sc:var(--ac)"><div class="adash-v">${ventas.length}</div><div class="adash-l">Ventas</div></div>
+    <div class="adash-card" style="--sc:var(--yw2)"><div class="adash-v">$${totalUsd.toFixed(2)}</div><div class="adash-l">Total $</div></div>
+    <div class="adash-card" style="--sc:var(--gn2)"><div class="adash-v" style="font-size:18px">Bs.${Math.round(totalUsd*760).toLocaleString('es-VE')}</div><div class="adash-l">Total Bs</div></div>`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  document.getElementById('a-ventas-body').innerHTML = ventas.map(v=>{
+    let diasHtml='—', venceHtml='—';
+    if(v.fechaVence){
+      const fv=new Date(v.fechaVence+'T00:00:00');
+      const dias=Math.round((fv-today)/86400000);
+      const dc=dias<0?'var(--rd2)':dias<=7?'var(--yw2)':'var(--gn2)';
+      diasHtml=`<span style="color:${dc};font-weight:600">${dias<0?'Vencida':dias+'d'}</span>`;
+      venceHtml=v.fechaVence;
+    }
+    return `<tr>
+      <td style="color:var(--mu2)">${v.fecha}</td>
+      <td style="font-weight:600;color:var(--pu)">${v.clienteNombre}</td>
+      <td style="font-weight:700;color:var(--ac)">${ICONS[v.servicio]||''} ${v.servicio}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ac);opacity:.8">${v.correo||'—'}</td>
+      <td style="color:var(--tx2)">${v.cliente}</td>
+      <td style="color:var(--yw2);font-weight:600">$${(v.precioUsd||0).toFixed(2)}</td>
+      <td style="color:var(--gn2);font-weight:600">Bs.${Math.round(v.precioBS||0).toLocaleString('es-VE')}</td>
+      <td style="color:var(--mu2)">${venceHtml}</td>
+      <td>${diasHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderNotifTargets(){
+  if(!ADMIN_DATA) return;
+  const wrap = document.getElementById('notif-targets');
+  wrap.innerHTML = '<button class="notif-target all" onclick="toggleNotifTarget(\'__all__\',this)">📢 Todos los clientes</button>';
+  ADMIN_DATA.clientes.filter(c=>c.activo==='SI'&&c.rol==='cliente').forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className='notif-target';
+    btn.textContent=c.nombre;
+    btn.dataset.id=c.id;
+    btn.onclick=()=>toggleNotifTarget(c.id,btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function toggleNotifTarget(id, btn){
+  if(id==='__all__'){
+    notifTargets.clear();
+    notifTargets.add('__all__');
+    document.querySelectorAll('.notif-target').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+  } else {
+    notifTargets.delete('__all__');
+    document.querySelector('.notif-target.all').classList.remove('sel');
+    if(notifTargets.has(id)){ notifTargets.delete(id); btn.classList.remove('sel'); }
+    else { notifTargets.add(id); btn.classList.add('sel'); }
+  }
+}
+
+async function enviarNotif(){
+  const subject = document.getElementById('notif-subject').value.trim();
+  const body    = document.getElementById('notif-body').value.trim();
+  if(!subject||!body){ alert('Completa asunto y mensaje'); return; }
+  if(!notifTargets.size){ alert('Selecciona al menos un destinatario'); return; }
+  try{
+    const r = await fetch(API, {method:'POST', body: JSON.stringify({
+      action:'enviar_notif', token:S.token,
+      targets: [...notifTargets], subject, body
+    })});
+    const d = await r.json();
+    if(d.ok){
+      const ok=document.getElementById('notif-ok');
+      ok.style.display='inline'; setTimeout(()=>ok.style.display='none',3000);
+      document.getElementById('notif-subject').value='';
+      document.getElementById('notif-body').value='';
+      notifTargets.clear();
+      document.querySelectorAll('.notif-target').forEach(b=>b.classList.remove('sel'));
+    }
+  }catch(e){ alert('Error al enviar'); }
+}
+
+// Modal cliente
+let editingClienteId = null;
+function openClienteModal(raw){
+  editingClienteId = null;
+  document.getElementById('modal-cliente-title').textContent = 'Nuevo cliente';
+  ['mc-nombre','mc-tel','mc-user','mc-pass'].forEach(id=>document.getElementById(id).value='');
+  if(raw){
+    const c = typeof raw==='string'?JSON.parse(raw.replace(/'/g,'"')):raw;
+    editingClienteId = c.id;
+    document.getElementById('modal-cliente-title').textContent = 'Editar cliente';
+    document.getElementById('mc-nombre').value = c.nombre||'';
+    document.getElementById('mc-tel').value    = c.telefono||'';
+    document.getElementById('mc-user').value   = c.usuario||'';
+    document.getElementById('mc-pass').value   = c.contrasena||'';
+  }
+  document.getElementById('modal-cliente').classList.add('open');
+}
+
+async function guardarCliente(){
+  const nombre = document.getElementById('mc-nombre').value.trim();
+  const tel    = document.getElementById('mc-tel').value.trim();
+  const user   = document.getElementById('mc-user').value.trim();
+  const pass   = document.getElementById('mc-pass').value.trim();
+  if(!nombre||!user||!pass){ alert('Completa nombre, usuario y contraseña'); return; }
+  try{
+    const r = await fetch(API, {method:'POST', body: JSON.stringify({
+      action: editingClienteId?'editar_cliente':'nuevo_cliente',
+      token:S.token, id:editingClienteId, nombre, telefono:tel, usuario:user, contrasena:pass
+    })});
+    const d = await r.json();
+    if(d.ok){
+      document.getElementById('mc-ok').style.display='block';
+      setTimeout(()=>{ document.getElementById('mc-ok').style.display='none'; document.getElementById('modal-cliente').classList.remove('open'); loadAdminData(); },1200);
+    }
+  }catch(e){ alert('Error al guardar'); }
+}
+
+async function toggleCliente(id, nuevoEstado){
+  try{
+    const r = await fetch(API, {method:'POST', body: JSON.stringify({action:'toggle_cliente',token:S.token,id,activo:nuevoEstado})});
+    const d = await r.json();
+    if(d.ok) loadAdminData();
+  }catch(e){ alert('Error'); }
+}
+
+async function toggleEstadoCuenta(correo, nuevoEstado){
+  try{
+    const r = await fetch(API, {method:'POST', body: JSON.stringify({action:'toggle_cuenta',token:S.token,correo,estado:nuevoEstado})});
+    const d = await r.json();
+    if(d.ok) loadAdminData();
+  }catch(e){ alert('Error'); }
+}
+
+function goAdminTab(id,el){
+  document.querySelectorAll('#admin .panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#admin .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+
 function logout(){
   S=null; localStorage.removeItem('jdvip2_session');
   document.getElementById('app').style.display='none';
+  document.getElementById('admin').style.display='none';
   document.getElementById('login-wrap').style.display='flex';
 }
 </script>
